@@ -1,0 +1,3 @@
+module API_CONNECTION
+
+go 1.26.1

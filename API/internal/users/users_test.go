@@ -1,4 +1,4 @@
-package main
+package users
 
 import (
 	"errors"
@@ -228,4 +228,3 @@ func TestGetUserByName(t *testing.T){
 		}
 	}
 }
-
