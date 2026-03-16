@@ -6,8 +6,6 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-
-	"google.golang.org/genproto/googleapis/cloud/aiplatform/v1beta1/schema/predict/params"
 )
 
 // type UserData struct{
@@ -51,7 +49,7 @@ func handleHelloParameterize(w http.ResponseWriter, r *http.Request){
 	username := "User"
 	userList := params["user"]
 	if len(userList) > 0 {
-		username = username[0]
+		username = userList[0]
 	}
 	handleHello(w,username)
 }
@@ -61,6 +59,7 @@ func handleHello(w http.ResponseWriter, username string){
 	output.WriteString("username")
 	output.WriteString("!\n")
 
+	_,err := w.Write(output.Bytes())
 	if err != nil{
 		slog.Error("error writing resdponse body","err",err)
 		return
