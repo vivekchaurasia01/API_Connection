@@ -28,10 +28,10 @@ func main(){
 	// }
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/",handleRoot)
+	mux.HandleFunc("/{$}",handleRoot)
 	mux.HandleFunc("/Goodbye",handleGoodbye)
 	mux.HandleFunc("/hello/",handleHelloParameterize)
-	mux.HandleFunc("/responses/hello/",handleUserResponsesHello)
+	mux.HandleFunc("/responses/{user}/hello/",handleUserResponsesHello)
 	mux.HandleFunc("POST//json",handleJSON)
 	
 	log.Fatal(http.ListenAndServe(":8080",mux))

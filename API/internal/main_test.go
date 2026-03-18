@@ -54,4 +54,35 @@ func TestHandleHelloParameterize(t *testing.T){
 	}
 }
 
-func handleHelloParameterizeNoParam()
+func TestHandleHelloParameterizeNoParam(t *testing.T){
+	req := httptest.NewRequest(http.MethodGet,"/hello/",nil)
+
+	w := httptest.NewRecorder()
+
+	handleHelloParameterize(w,req)
+		desireCode := http.StatusOK
+
+	if w.Code != desireCode{
+		t.Errorf("bad response code,expected :%v\n but got :%v\nbody:%s\n",desireCode,w.Code,w.Body.String())
+	}
+	expectedMessage := []byte("hello,User!\n")
+	if !bytes.Equal(expectedMessage,w.Body.Bytes()){
+		t.Errorf("bad response code,Got:%q,Expected %q",w.Body.String(),expectedMessage)
+	}
+}
+func TestHandleHelloParameterizeWrongParam(t *testing.T){
+	req := httptest.NewRequest(http.MethodGet,"/hello?xyz=pqr",nil)
+	
+	w := httptest.NewRecorder()
+
+	handleHelloParameterize(w,req)
+		desireCode := http.StatusOK
+
+	if w.Code != desireCode{
+		t.Errorf("bad response code,expected :%v\n but got :%v\nbody:%s\n",desireCode,w.Code,w.Body.String())
+	}
+	expectedMessage := []byte("hello,User!\n")
+	if !bytes.Equal(expectedMessage,w.Body.Bytes()){
+		t.Errorf("bad response code,Got:%q,Expected %q",w.Body.String(),expectedMessage)
+	}
+}
