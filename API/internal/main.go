@@ -73,7 +73,7 @@ func handleJSON(w http.ResponseWriter, r *http.Request){
 	var reqData UserData
 	err = json.Unmarshal(byteData,&reqData)
 	if err != nil{
-		slog.Error("erroe Unmarshalling request body","err",err)
+		slog.Error("error Unmarshalling request body","err",err)
 		http.Error(w,"error while parsing reqbody JSON",http.StatusBadRequest)
 		return 
 	}
@@ -87,7 +87,7 @@ func handleJSON(w http.ResponseWriter, r *http.Request){
 func handleHello(w http.ResponseWriter, username string){
 	var output bytes.Buffer
 	output.WriteString("hello,")
-	output.WriteString("username")
+	output.WriteString(username)
 	output.WriteString("!\n")
 
 	_,err := w.Write(output.Bytes())
