@@ -32,7 +32,7 @@ func main(){
 	mux.HandleFunc("/Goodbye",handleGoodbye)
 	mux.HandleFunc("/hello/",handleHelloParameterize)
 	mux.HandleFunc("/responses/{user}/hello/",handleUserResponsesHello)
-	mux.HandleFunc("POST//json",handleJSON)
+	mux.HandleFunc("POST/json",handleJSON)
 	
 	log.Fatal(http.ListenAndServe(":8080",mux))
 }
@@ -65,8 +65,8 @@ func handleUserResponsesHello(w http.ResponseWriter, r *http.Request){
 func handleJSON(w http.ResponseWriter, r *http.Request){
 	byteData,err := io.ReadAll(r.Body)
 	if err != nil || len(byteData) < 1 {
-		slog.Error("error while reading request body","err",err)
-		http.Error(w,"error parsing request JSON",http.StatusBadRequest)
+		slog.Error("error reading request body","err",err)
+		http.Error(w,"bad request body",http.StatusBadRequest)
 		return
 	}
 	// Lets Unmarshall them...

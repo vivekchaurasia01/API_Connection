@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -104,4 +105,73 @@ func TestHandleUserResponsesHello(t *testing.T){
 		t.Errorf("bad response code,Got:%q,Expected %q",w.Body.String(),expectedMessage)
 	}
 }
+func TestHandleJSON(t *testing.T){
+	testRequest := UserData{
+		FirstName: "Testman",
+	}
+	marshalledRequestBody,err := json.Marshal(testRequest)
+	if err != nil{
+		t.Fatalf("error while marshalling the data :%v",err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost,"/user",bytes.NewBuffer(marshalledRequestBody))
+
+	w := httptest.NewRecorder()
+
+	handleJSON(w,req)
+
+	desiredCode := http.StatusOK
+
+	if w.Code != desiredCode{
+		t.Errorf("bad response code,expected :%v\n but got :%v\nbody:%s\n",desiredCode,w.Code,w.Body.String())
+	}
+	expectedMessage := []byte("hello,Testman!\n")
+	if !bytes.Equal(expectedMessage,w.Body.Bytes()){
+		t.Errorf("bad response code,Got:%q,Expected %q",w.Body.String(),expectedMessage)
+	}
+}
+func TestHandleJsonEmptyBody(t *testing.T){
+
+	req := httptest.NewRequest(http.MethodPost,"/user",nil)
+
+	w := httptest.NewRecorder()
+
+	handleJSON(w,req)
+
+	desiredCode := http.StatusBadRequest
+
+	if w.Code != desiredCode{
+		t.Errorf("bad response code,expected :%v\n but got :%v\nbody:%s\n",desiredCode,w.Code,w.Body.String())
+	}
+	expectedMessage := []byte("bad request body\n")
+	if !bytes.Equal(expectedMessage,w.Body.Bytes()){
+		t.Errorf("bad return,Got:%q,Expected %q",w.Body.String(),expectedMessage)
+	}
+}
+func TestHandleJsonName(t *testing.T){
+		testRequest := UserData{
+		FirstName: "",
+	}
+	marshalledRequestBody,err := json.Marshal(testRequest)
+	if err != nil{
+		t.Fatalf("error while marshalling the data :%v",err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost,"/user",bytes.NewBuffer(marshalledRequestBody))
+
+	w := httptest.NewRecorder()
+
+	handleJSON(w,req)
+
+	desiredCode := http.StatusBadRequest
+
+	if w.Code != desiredCode{
+		t.Errorf("bad response code,expected :%v\n but got :%v\nbody:%s\n",desiredCode,w.Code,w.Body.String())
+	}
+	expectedMessage := []byte("invalid Username provided\n")
+	if !bytes.Equal(expectedMessage,w.Body.Bytes()){
+		t.Errorf("bad response code,Got:%q,Expected %q",w.Body.String(),expectedMessage)
+	}
+}
+
 
