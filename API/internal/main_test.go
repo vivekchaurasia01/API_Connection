@@ -43,7 +43,7 @@ func TestHandleHelloParameterize(t *testing.T){
 
 	handleHelloParameterize(w,req)
 
-		desireCode := http.StatusOK
+	desireCode := http.StatusOK
 
 	if w.Code != desireCode{
 		t.Errorf("bad response code,expected :%v\n but got :%v\nbody:%s\n",desireCode,w.Code,w.Body.String())
@@ -86,3 +86,22 @@ func TestHandleHelloParameterizeWrongParam(t *testing.T){
 		t.Errorf("bad response code,Got:%q,Expected %q",w.Body.String(),expectedMessage)
 	}
 }
+func TestHandleUserResponsesHello(t *testing.T){
+	req := httptest.NewRequest(http.MethodGet,"/user/hello/",nil)
+	req.SetPathValue("user","Testman")
+
+	w := httptest.NewRecorder()
+
+	handleUserResponsesHello(w,req)
+
+	desiredCode := http.StatusOK
+
+	if w.Code != desiredCode{
+		t.Errorf("bad response code,expected :%v\n but got :%v\nbody:%s\n",desiredCode,w.Code,w.Body.String())
+	}
+	expectedMessage := []byte("hello,Testman!\n")
+	if !bytes.Equal(expectedMessage,w.Body.Bytes()){
+		t.Errorf("bad response code,Got:%q,Expected %q",w.Body.String(),expectedMessage)
+	}
+}
+
