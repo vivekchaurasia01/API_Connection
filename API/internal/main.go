@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "API_CONNECTION/API/internal/users"
+	"API_CONNECTION/API/internal/users"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -16,16 +16,16 @@ type UserData struct{
 	Email string
 }
 
-// type Server struct{
-// 	UserManager *users.Manager
-// }
+type Server struct{
+	UserManager *users.Manager
+}
 
 func main(){
-	// manager := users.NewManager()
+	manager := users.NewManager()
 
-	// s := Server{
-	// 	UserManager: manager,
-	// }
+	s := Server{
+		UserManager: manager,
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/{$}",handleRoot)
