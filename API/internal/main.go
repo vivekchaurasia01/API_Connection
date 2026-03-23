@@ -32,7 +32,9 @@ func main(){
 	mux.HandleFunc("/Goodbye",handleGoodbye)
 	mux.HandleFunc("/hello/",handleHelloParameterize)
 	mux.HandleFunc("/responses/{user}/hello/",handleUserResponsesHello)
+	mux.HandleFunc("POST/user/hello/",s.handleHelloHeader)
 	mux.HandleFunc("POST/json",handleJSON)
+
 	
 	log.Fatal(http.ListenAndServe(":8080",mux))
 }
@@ -82,6 +84,24 @@ func handleJSON(w http.ResponseWriter, r *http.Request){
 		return 
 	}
 	handleHello(w,reqData.FirstName)
+}
+func (s Server)handleHelloHeader(w http.ResponseWriter, r *http.Request){
+	firstName := r.Header.Get("userFirst")
+
+	if firstName == "" {
+		http.Error(w,"Invalid first name provided",http.StatusBadRequest)
+		return 
+	}
+
+	lastName := r.Header.Get("userlast")
+
+	if lastName == "" {
+		http.Error(w,"Invalid last name provided",http.StatusBadRequest)
+		return 
+	}
+
+	
+
 }
 
 func handleHello(w http.ResponseWriter, username string){
