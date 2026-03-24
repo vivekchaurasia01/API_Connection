@@ -12,9 +12,9 @@ import (
 )
 
 type UserData struct{
-	FirstName string
-	LastName string
-	Email string
+    FirstName string `json:"firstname"`
+    LastName  string `json:"lastname"`
+    Email     string `json:"email"`
 }
 
 type Server struct{
@@ -58,14 +58,14 @@ func (s Server)handleHelloHeader(w http.ResponseWriter, r *http.Request){
 
 }
 func(s Server)handleAddUser(w http.ResponseWriter, r *http.Request){
-	contentType := r.Header.Get("content-Type")
-	if contentType != "application/json"{
-		http.Error(w,fmt.Sprintf("unsupported Content Type header: %q",contentType),http.StatusUnsupportedMediaType)
+	ContentType:= r.Header.Get("content-Type") // HTTP has headers + body and Headers describe what the body contains.
+	if ContentType!= "application/json"{  //contentType is a string.
+		http.Error(w,fmt.Sprintf("unsupported Content Type header: %q",ContentType),http.StatusUnsupportedMediaType)
 		return 
 	}
 	requestBody := http.MaxBytesReader(w,r.Body,1048576) // limit size to prevent Dos and DDos.
 	decoder := json.NewDecoder(requestBody)
-	decoder.DisallowUnknownFields()
+	decoder.DisallowUnknownFields() //Rejects extra fields not in struct
 
 	var u UserData
 
@@ -82,8 +82,6 @@ func(s Server)handleAddUser(w http.ResponseWriter, r *http.Request){
 		}
 		w.WriteHeader(http.StatusCreated)
 }
-
-
 func handleRoot(w http.ResponseWriter, _*http.Request){
 	_,err := w.Write([]byte("Welcome_User"))
 	if err != nil{
