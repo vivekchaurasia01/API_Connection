@@ -4,6 +4,7 @@ import (
 	"API_CONNECTION/API/internal/users"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"log/slog"
@@ -33,11 +34,56 @@ func main(){
 	mux.HandleFunc("/hello/",handleHelloParameterize)
 	mux.HandleFunc("/responses/{user}/hello/",handleUserResponsesHello)
 	mux.HandleFunc("POST/user/hello/",s.handleHelloHeader)
+	mux.HandleFunc("POST/AddUser",s.handleAddUser)
 	mux.HandleFunc("POST/json",handleJSON)
 
 	
 	log.Fatal(http.ListenAndServe(":8080",mux))
 }
+
+func (s Server)handleHelloHeader(w http.ResponseWriter, r *http.Request){
+	firstName := r.Header.Get("userFirst")
+
+	if firstName == "" {
+		http.Error(w,"Invalid first name provided",http.StatusBadRequest)
+		return 
+	}
+
+	lastName := r.Header.Get("userlast")
+
+	if lastName == "" {
+		http.Error(w,"Invalid last name provided",http.StatusBadRequest)
+		return 
+	}
+
+}
+func(s Server)handleAddUser(w http.ResponseWriter, r *http.Request){
+	contentType := r.Header.Get("content-Type")
+	if contentType != "application/json"{
+		http.Error(w,fmt.Sprintf("unsupported Content Type header: %q",contentType),http.StatusUnsupportedMediaType)
+		return 
+	}
+	requestBody := http.MaxBytesReader(w,r.Body,1048576) // limit size to prevent Dos and DDos.
+	decoder := json.NewDecoder(requestBody)
+	decoder.DisallowUnknownFields()
+
+	var u UserData
+
+	err := decoder.Decode(&u)
+	if err != nil{
+		slog.Error("error decoding adduser request body","err",err)
+		http.Error(w,"bad request body",http.StatusBadRequest)
+		return
+	}
+	err = s.UserManager.AddUser(u.FirstName,u.LastName,u.Email)
+		if err != nil {
+			http.Error(w,fmt.Sprintf("Error adding user: %v\n",err),http.StatusBadRequest)
+			return 
+		}
+		w.WriteHeader(http.StatusCreated)
+}
+
+
 func handleRoot(w http.ResponseWriter, _*http.Request){
 	_,err := w.Write([]byte("Welcome_User"))
 	if err != nil{
@@ -85,25 +131,6 @@ func handleJSON(w http.ResponseWriter, r *http.Request){
 	}
 	handleHello(w,reqData.FirstName)
 }
-func (s Server)handleHelloHeader(w http.ResponseWriter, r *http.Request){
-	firstName := r.Header.Get("userFirst")
-
-	if firstName == "" {
-		http.Error(w,"Invalid first name provided",http.StatusBadRequest)
-		return 
-	}
-
-	lastName := r.Header.Get("userlast")
-
-	if lastName == "" {
-		http.Error(w,"Invalid last name provided",http.StatusBadRequest)
-		return 
-	}
-
-	
-
-}
-
 func handleHello(w http.ResponseWriter, username string){
 	var output bytes.Buffer
 	output.WriteString("hello,")
