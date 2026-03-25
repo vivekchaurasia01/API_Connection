@@ -35,6 +35,7 @@ func main(){
 	mux.HandleFunc("/responses/{user}/hello/",handleUserResponsesHello)
 	mux.HandleFunc("POST/user/hello/",s.handleHelloHeader)
 	mux.HandleFunc("POST/AddUser",s.handleAddUser)
+	mux.HandleFunc("POST/GetUser",s.handleGetUser)
 	mux.HandleFunc("POST/json",handleJSON)
 
 	
@@ -82,6 +83,27 @@ func(s Server)handleAddUser(w http.ResponseWriter, r *http.Request){
 		}
 		w.WriteHeader(http.StatusCreated) //  if i dont write it go automatically sends HTTP/1.1 200 OK but because we created something we need 201 so we specified it.
 }
+func (s Server) getUser(w http.ResponseWriter,r http.Request){
+	ContentType:= r.Header.Get("content-Type")
+	if ContentType!= "application/json"{
+		http.Error(w,fmt.Sprintf("unsupported Content Type header: %q",ContentType),http.StatusUnsupportedMediaType)
+		return 
+	}
+	requestBody := http.MaxBytesReader(w,r.Body,1048576) // limit size to prevent Dos and DDos. 
+	decoder := json.NewDecoder(requestBody) //It just prepares a decoder that will later pull bytes from requestBody.
+	decoder.DisallowUnknownFields() //Rejects extra fields not in struct
+
+	var u UserData
+
+	err := decoder.Decode(&u)
+	if err != nil{
+		slog.Error("error decoding adduser request body","err",err)
+		http.Error(w,"bad request body",http.StatusBadRequest)
+		return
+	}
+
+}
+
 func handleRoot(w http.ResponseWriter, _*http.Request){
 	_,err := w.Write([]byte("Welcome_User"))
 	if err != nil{
