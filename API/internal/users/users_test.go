@@ -35,7 +35,7 @@ func TestAddUser (t *testing.T){
 	expectedUser := User{
 		FirstName: testFirstName,
 		LastName: testLastName,
-		email: *testEmail,  // parseAddress return pointer to the email address we meed to dereference it ,cuz we are not storing pointers.
+		Email: *testEmail,  // parseAddress return pointer to the email address we meed to dereference it ,cuz we are not storing pointers.
 	}
 
 	foundUser := testManager.users[0]

@@ -11,7 +11,7 @@ var ErrNoResultFound = errors.New("no result found")
 type User struct{
 	FirstName string
 	LastName string
-	email mail.Address
+	Email mail.Address
 }
 
 type Manager struct{
@@ -45,7 +45,7 @@ func(m *Manager) AddUser(firstName string, lastName string, email string) error 
 	newUser := User{
 		FirstName: firstName,
 		LastName: lastName,
-		email: *parsedAddress,
+		Email: *parsedAddress,
 	}
 	m.users = append(m.users, newUser)
 	return nil

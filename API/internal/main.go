@@ -35,40 +35,42 @@ func main(){
 	mux.HandleFunc("/hello/",handleHelloParameterize)
 	mux.HandleFunc("/responses/{user}/hello/",handleUserResponsesHello)
 	mux.HandleFunc("POST/user/hello/",s.handleHelloHeader)
-	mux.HandleFunc("POST/AddUser",s.handleAddUser)
-	mux.HandleFunc("POST/GetUser",s.handleGetUser)
+	mux.HandleFunc("POST/AddUser",s.AddUser)
+	mux.HandleFunc("POST/GetUser",s.GetUser)
 	mux.HandleFunc("POST/json",handleJSON)
 
-	
 	log.Fatal(http.ListenAndServe(":8080",mux))
 }
-
-func (s Server)handleHelloHeader(w http.ResponseWriter, r *http.Request){
+func (s *Server) handleHelloHeader(w http.ResponseWriter, r *http.Request) {
 	firstName := r.Header.Get("userFirst")
-
 	if firstName == "" {
-		http.Error(w,"Invalid first name provided",http.StatusBadRequest)
-		return 
+		http.Error(w, "invalid first name provided", http.StatusBadRequest)
+		return
 	}
-
-	lastName := r.Header.Get("userlast")
-
+	lastName := r.Header.Get("userLast")
 	if lastName == "" {
-		http.Error(w,"Invalid last name provided",http.StatusBadRequest)
-		return 
+		http.Error(w, "invalid last name provided", http.StatusBadRequest)
+		return
 	}
 	user, err := s.UserManager.GetUserByName(firstName, lastName)
 	if err != nil {
-		if errors.Is(err, users.ErrNoResultsFound) {
+		if errors.Is(err, users.ErrNoResultFound) {
 			http.Error(w, "no users found", http.StatusNotFound)
 		} else {
 			http.Error(w, fmt.Sprintf("error retrieving user: %v\n", err), http.StatusInternalServerError)
 		}
-		return
+	return
 	}
 
+	result := fmt.Sprintf("Hello, %s %s!  Your email is: %s\n", user.FirstName, user.LastName, user.Email.Address)
+
+	_, err = w.Write([]byte(result))
+	if err != nil {
+		slog.Error("error writing response body", "err", err)
+		return
+	}
 }
-func(s Server)handleAddUser(w http.ResponseWriter, r *http.Request){
+func(s Server)AddUser(w http.ResponseWriter, r *http.Request){
 	ContentType:= r.Header.Get("content-Type") // HTTP has headers + body and Headers describe what the body contains.
 	if ContentType!= "application/json"{  //contentType is a string.
 		http.Error(w,fmt.Sprintf("unsupported Content Type header: %q",ContentType),http.StatusUnsupportedMediaType)
@@ -86,14 +88,15 @@ func(s Server)handleAddUser(w http.ResponseWriter, r *http.Request){
 		http.Error(w,"bad request body",http.StatusBadRequest)
 		return
 	}
+	//Business Logic..
 	err = s.UserManager.AddUser(u.FirstName,u.LastName,u.Email)
 		if err != nil {
 			http.Error(w,fmt.Sprintf("Error adding user: %v\n",err),http.StatusBadRequest)
 			return 
 		}
-		w.WriteHeader(http.StatusCreated) //  if i dont write it go automatically sends HTTP/1.1 200 OK but because we created something we need 201 so we specified it.
+	w.WriteHeader(http.StatusCreated) //  if i dont write it go automatically sends HTTP/1.1 200 OK but because we created something we need 201 so we specified it.
 }
-func (s *Server) getUser(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/json" {
 		http.Error(w, fmt.Sprintf("unsupported Content-Type header %q", contentType), http.StatusUnsupportedMediaType)
@@ -113,10 +116,10 @@ func (s *Server) getUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("error decoding request body: %v\n", err), http.StatusBadRequest)
 		return
 	}
-
+	// Business Logic...
 	user, err := s.UserManager.GetUserByName(u.FirstName, u.LastName)
 	if err != nil {
-		if errors.Is(err, users.ErrNoResultsFound) {
+		if errors.Is(err,users.ErrNoResultFound) {
 			http.Error(w, "no users found", http.StatusNotFound)
 		} else {
 			slog.Error("error retrieving user", "err", err)
@@ -125,7 +128,7 @@ func (s *Server) getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	converted := convertUserToUserData(user)
+	converted := convertUserToUserData(user)  // To Prevent risk of exposing data. Only Safe field will go out.
 
 	marshalled, err := json.Marshal(converted)
 	if err != nil {
@@ -201,6 +204,22 @@ func handleHello(w http.ResponseWriter, username string){
 	_,err := w.Write(output.Bytes())
 	if err != nil{
 		slog.Error("error writing resdponse body","err",err)
+		return
+	}
+}
+func convertUserToUserData(u *users.User) *UserData {
+	converted := UserData{
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Email:     u.Email.Address,
+	}
+
+	return &converted
+}
+func validateContentType(w http.ResponseWriter, r *http.Request) {
+	contentType := r.Header.Get("Content-Type")
+	if contentType != "application/json" {
+		http.Error(w, fmt.Sprintf("unsupported Content-Type header %q", contentType), http.StatusUnsupportedMediaType)
 		return
 	}
 }
